@@ -1,0 +1,9 @@
+# Byte-compiled / optimized
+__pycache__/
+*.py[cod]
+
+# Environments
+.venv/
+
+# Generated
+data/

@@ -1,0 +1,20 @@
+[project]
+name = "agentic-proto"
+version = "0.1.0"
+description = "Prototype for an Agentic AI case"
+authors = [
+    { name="Yoiq S Rambadian", email="yoiqrambadian@gmail.com" },
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv.workspace]
+members = [
+    "packages/*",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+]
