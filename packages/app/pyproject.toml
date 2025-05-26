@@ -1,0 +1,10 @@
+[project]
+name = "app"
+version = "0.1.0"
+description = "Web application for user to interact with Agentic AI"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.11.5",
+    "streamlit>=1.45.1",
+]
