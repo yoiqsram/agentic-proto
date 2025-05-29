@@ -1,0 +1,27 @@
+[project]
+name = "market-pipeline"
+version = "0.1.0"
+description = "Data pipeline for market data"
+readme = "README.md"
+authors = [
+    { name = "Yoiq S Rambadian", email = "yoiqrambadian@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "database",
+    "lxml>=5.4.0",
+    "openpyxl>=3.1.5",
+    "requests>=2.32.3",
+    "tqdm>=4.67.1",
+    "yfinance>=0.2.61",
+]
+
+[tool.uv.sources]
+database = { workspace = true }
+
+[project.scripts]
+market-pipeline = "market_pipeline:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

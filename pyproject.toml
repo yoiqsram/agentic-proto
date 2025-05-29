@@ -17,7 +17,9 @@ dev = [
 [tool.uv.workspace]
 members = [
     "packages/database",
+    "packages/market-pipeline",
 ]
 
 [tool.uv.sources]
 database = { workspace = true }
+market-pipeline = { workspace = true }
