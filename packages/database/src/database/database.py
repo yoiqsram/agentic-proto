@@ -94,6 +94,35 @@ class StockDaily(DBModel):
         indexes = ((('stock_code', 'date'), True),)
 
 
+class Currency(DBModel):
+    code = CharField(unique=True)
+    name = CharField()
+
+
+class CurrencyDaily(DBModel):
+    id = AutoField()
+    from_currency = ForeignKeyField(
+        Currency,
+        column_name='from_currency_code'
+    )
+    to_currency = ForeignKeyField(
+        Currency,
+        column_name='to_currency_code'
+    )
+    date = DateField()
+    open = FloatField()
+    high = FloatField()
+    low = FloatField()
+    close = FloatField()
+    created_datetime = DateTimeField(
+        constraints=[SQL('DEFAULT CURRENT_TIMESTAMP')]
+    )
+
+    class Meta:
+        db_table = 'currency_daily'
+        indexes = ((('from_code', 'to_code', 'date'), True),)
+
+
 class UserStockTrade(DBModel):
     id = AutoField()
     user = ForeignKeyField(
