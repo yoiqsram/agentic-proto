@@ -9,12 +9,15 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []
 
-[tool.uv.workspace]
-members = [
-    "packages/*",
-]
-
 [dependency-groups]
 dev = [
     "ipykernel>=6.29.5",
 ]
+
+[tool.uv.workspace]
+members = [
+    "packages/database",
+]
+
+[tool.uv.sources]
+database = { workspace = true }

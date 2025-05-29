@@ -1,0 +1,19 @@
+[project]
+name = "database"
+version = "0.1.0"
+description = "Shared Database ORM for Application and Pipeline"
+readme = "README.md"
+authors = [
+    { name = "Yoiq S Rambadian", email = "yoiqrambadian@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "peewee>=3.18.1",
+]
+
+[project.scripts]
+database = "database:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
