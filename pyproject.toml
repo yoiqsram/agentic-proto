@@ -7,7 +7,10 @@ authors = [
 ]
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "crewai>=0.121.1",
+    "crewai-tools>=0.46.0",
+]
 
 [dependency-groups]
 dev = [
@@ -16,10 +19,12 @@ dev = [
 
 [tool.uv.workspace]
 members = [
+    "packages/agent",
     "packages/database",
     "packages/pipeline",
 ]
 
 [tool.uv.sources]
+agent = { workspace = true }
 database = { workspace = true }
 pipeline = { workspace = true }
