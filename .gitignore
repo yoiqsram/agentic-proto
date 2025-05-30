@@ -5,6 +5,9 @@ __pycache__/
 # Environments
 .venv/
 
+# Backup files
+*.backup
+
 # Generated
 data/
 app.db

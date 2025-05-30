@@ -9,13 +9,12 @@ from database import StockDaily
 def get_stock_daily_last_date(
         stock_code: str
         ) -> datetime | None:
-    query = (
+    return (
         StockDaily
         .select(fn.MAX(StockDaily.date).alias('date'))
         .where(StockDaily.stock_code == stock_code)
+        .scalar()
     )
-    for record in query:
-        return record.date
 
 
 def get_stock_daily(

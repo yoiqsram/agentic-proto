@@ -103,10 +103,12 @@ class CurrencyDaily(DBModel):
     id = AutoField()
     from_currency = ForeignKeyField(
         Currency,
+        Currency.code,
         column_name='from_currency_code'
     )
     to_currency = ForeignKeyField(
         Currency,
+        Currency.code,
         column_name='to_currency_code'
     )
     date = DateField()
@@ -120,7 +122,7 @@ class CurrencyDaily(DBModel):
 
     class Meta:
         db_table = 'currency_daily'
-        indexes = ((('from_code', 'to_code', 'date'), True),)
+        indexes = ((('from_currency_code', 'to_currency_code', 'date'), True),)
 
 
 class UserStockTrade(DBModel):
@@ -180,6 +182,8 @@ db_models = [
     Sector,
     Stock,
     StockDaily,
+    Currency,
+    CurrencyDaily,
     UserStockTrade,
     UserStockWatchlist
 ]

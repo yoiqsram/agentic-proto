@@ -1,10 +1,15 @@
 import pandas as pd
 import requests
+from argparse import Namespace
 from lxml import html
 from pathlib import Path
-from peewee import chunked
+from peewee import Database, chunked, fn
 
-from database import Sector, Stock, User, UserStockWatchlist, create_database
+from database import (
+    Sector, Stock, User, UserStockWatchlist,
+    Currency, CurrencyDaily,
+    connect_database, enable_debug
+)
 
 SECTOR_MAP = {
     'Basic Materials': 'IDXBASIC',
@@ -66,15 +71,25 @@ def extract_sectors(data: pd.DataFrame) -> pd.DataFrame:
     return sectors
 
 
-def load_sectors_to_db(data: pd.DataFrame):
+def load_sectors_to_db(
+        data: pd.DataFrame,
+        *,
+        database: Database
+        ):
     data = data.to_dict('records')
-    with db.atomic():
-        Sector.insert_many(data).execute()
+    with database.atomic():
+        (
+            Sector
+            .insert_many(data)
+            .on_conflict_ignore()
+            .execute()
+        )
 
 
 def load_stocks_to_db(
         data: pd.DataFrame,
         *,
+        database: Database,
         chunk_size: int = 64
         ):
     data = (
@@ -82,19 +97,45 @@ def load_stocks_to_db(
         [['code', 'name', 'volume', 'sector_code']]
         .to_dict('records')
     )
-    with db.atomic():
+    with database.atomic():
         for batch in chunked(data, chunk_size):
-            Stock.insert_many(batch).execute()
+            (
+                Stock
+                .insert_many(batch)
+                .on_conflict_ignore()
+                .execute()
+            )
 
 
-def create_pipeline_user(username: str):
-    user = User(
-        username=username,
-        full_name=username,
-        cash_balance_before=0,
-        cash_balance_after=0
-    )
-    user.save()
+def create_default_currencies(
+        *,
+        database: Database
+        ):
+    data = [
+        {'code': 'USD', 'name': 'United States Dollar'},
+        {'code': 'IDR', 'name': 'Indonesian Rupiah'},
+    ]
+    with database.atomic():
+        (
+            Currency
+            .insert_many(data)
+            .on_conflict_ignore()
+            .execute()
+        )
+
+
+def create_pipeline_user(
+        username: str,
+        *,
+        database: Database
+        ) -> User:
+    with database.atomic():
+        user, _ = User.get_or_create(
+            username=username,
+            full_name=username,
+            cash_balance_before=0,
+            cash_balance_after=0
+        )
     return user
 
 
@@ -102,7 +143,7 @@ def extract_stock_watchlist() -> list[str]:
     # Get LQ45
     res = requests.get('https://www.kontan.co.id/indeks-lq45')
     page = html.fromstring(res.text)
-    rows = page.findall('.//table/tbody/tr')
+    rows = page.findall('.//table/tbody/tr')[:45]
     watchlist = [
         (
             row.findall('./td')[1].text_content().strip()
@@ -115,30 +156,42 @@ def extract_stock_watchlist() -> list[str]:
 
 def load_user_stock_watchlist_to_db(
         user: User,
-        watchlist: list[str]
+        watchlist: list[str],
+        *,
+        database: Database
         ):
     query = Stock.select().where(Stock.code.in_(watchlist))
-    with db.atomic():
+    with database.atomic():
         for stock in query:
-            watchlist_ = UserStockWatchlist(
-                user=user,
-                stock=stock
+            (
+                UserStockWatchlist
+                .insert(
+                    user=user,
+                    stock=stock
+                )
+                .on_conflict_ignore()
+                .execute()
             )
-            watchlist_.save()
 
 
-if __name__ == '__main__':
-    db = create_database()
+def run_init_market_pipeline(args: Namespace):
+    if args.debug:
+        enable_debug()
 
-    dataset_dir = Path('./data/raw/sectors')
+    db = connect_database()
+
+    dataset_dir = Path(args.dataset_sector)
     data = extract_stocks(dataset_dir)
     stocks = transform_stocks(data)
     sectors = extract_sectors(stocks)
 
-    load_sectors_to_db(sectors)
-    load_stocks_to_db(stocks)
+    load_sectors_to_db(sectors, database=db)
+    load_stocks_to_db(stocks, database=db)
 
     username = 'default'
-    user = create_pipeline_user(username)
+    user = create_pipeline_user(username, database=db)
     watchlist = extract_stock_watchlist()
-    load_user_stock_watchlist_to_db(user, watchlist)
+    load_user_stock_watchlist_to_db(user, watchlist, database=db)
+
+    create_default_currencies(database=db)
+

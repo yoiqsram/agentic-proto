@@ -35,11 +35,11 @@ uv run database
 First, initialize the database and pipeline.
 
 ```sh
-uv run packages/market-pipeline/src/init.py
+uv run pipeline init
 ```
 
-Populate daily stock historical data.
+Second, populate daily historical of market data.
 
 ```sh
-uv run packages/market-pipeline/src/daily.py
+uv run pipeline daily
 ```
