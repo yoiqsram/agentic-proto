@@ -23,7 +23,7 @@ def _parse_percent(value: float) -> str:
     return f'{value * 100:+.2f}%'
 
 
-def _get_trends(data: pd.DataFrame) -> dict[str, str]:
+def _extract_trends(data: pd.DataFrame) -> str:
     data['date'] = pd.to_datetime(data['date'])
     data = data.set_index('date').resample('D').ffill()
 
@@ -124,9 +124,8 @@ class StockMarketTool(BaseTool):
             if len(data) < 1:
                 raise
 
-            trends = _get_trends(data)
+            trends = _extract_trends(data)
         except:
-            raise
             return 'Error: Something went wrong while trying to get the data.'
 
         return trends
@@ -148,17 +147,17 @@ class CurrencyMarketShema(BaseModel):
 
 
 class CurrencyMarketTool(BaseTool):
-    '''A tool to query price trends of a stock.'''
+    '''A tool to query price trends of a currency.'''
 
     name: str = 'Get recent price trends of a currency compared to 1 USD'
     description: str = (
         'A tool that return recent price trends of a currency compared to '
-        '1 USD in 1D, 7D, 30D, and 60D. daily historical data of a stock. To use this '
-        'tool, provide `stock_code` parameter with the code of stock you '
+        '1 USD in 1D, 7D, 30D, and 60D. To use this '
+        'tool, provide `currency_code` parameter with the code of currency you '
         'want to query and `current_date` parameter with the date formatted '
         'in `YYYY-MM-DD` to be used as a reference of the latest date.'
     )
-    args_schema: Type[BaseModel] = StockMarketShema
+    args_schema: Type[BaseModel] = CurrencyMarketShema
 
     def _run(self, **kwargs: Any) -> str:
         currency_code = kwargs.get("currency_code")
@@ -217,9 +216,8 @@ class CurrencyMarketTool(BaseTool):
             if len(data) < 1:
                 raise
 
-            trends = _get_trends(data)
+            trends = _extract_trends(data)
         except:
-            raise
             return 'Error: Something went wrong while trying to get the data.'
 
         return trends
