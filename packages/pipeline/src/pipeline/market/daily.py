@@ -104,23 +104,26 @@ def extract_currencies() -> list[Currency]:
 def extract_currency_daily(currencies: list[Currency]) -> pd.DataFrame:
     data = []
     for currency in tqdm(currencies):
-        last_date = get_currency_daily_last_date(currency.code)
+        last_date = get_currency_daily_last_date(
+            'USD',
+            currency.code
+        )
         if last_date is not None:
             start_datetime = last_date + timedelta(days=1)
         else:
             start_datetime = START_DATETIME
 
         currency_daily = get_currency_daily(
-            currency.code,
             'USD',
+            currency.code,
             start_datetime
         )
         currency_daily = (
             currency_daily
             .reset_index()
             .assign(
-                from_currency_code=currency.code,
-                to_currency_code='USD'
+                from_currency_code='USD',
+                to_currency_code=currency.code
             )
         )
         data.append(currency_daily)
