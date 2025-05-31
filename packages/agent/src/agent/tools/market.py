@@ -4,9 +4,11 @@ import json
 import pandas as pd
 from crewai.tools import BaseTool
 from datetime import datetime, timedelta
+from peewee import fn
 from pydantic import BaseModel, Field
 
 from database import (
+    Sector,
     Stock,
     StockDaily,
     Currency,
@@ -90,7 +92,7 @@ class StockMarketTool(BaseTool):
 
         try:
             end_date = datetime.fromisoformat(current_date)
-            start_date = end_date - timedelta(days=61)
+            start_date = end_date - timedelta(days=70)
         except:
             return (
                 'Error: Wrong `current_date` format. Please provide date '
@@ -118,6 +120,100 @@ class StockMarketTool(BaseTool):
                     & (StockDaily.date >= start_date)
                     & (StockDaily.date <= end_date)
                 )
+                .order_by(StockDaily.date)
+                .dicts()
+            )
+            if len(data) < 1:
+                raise
+
+            trends = _extract_trends(data)
+        except:
+            return 'Error: Something went wrong while trying to get the data.'
+
+        return trends
+
+
+class SectoralMarketShema(BaseModel):
+    '''Input for SectoralkMarketTool'''
+
+    sector_code: str = Field(
+        description='Mandatory sectoral code to get the average recent price trends'
+    )
+    current_date: str = Field(
+        description=
+            "Mandatory current date formatted in 'YYYY-MM-DD' to be as "
+            'the reference of the last date of the historical data'
+    )
+
+
+class SectoralMarketTool(BaseTool):
+    '''A tool to query price trends of sectoral stocks.'''
+
+    name: str = 'Get recent average price trends of stocks in the same sector'
+    description: str = (
+        'A tool that return average recent price trends of stocks in the same sector '
+        'in 1D, 7D, 30D, and 60D. daily historical data of a stock. To use this '
+        'tool, provide `stock_code` parameter with the code of stock you '
+        'want to query and `current_date` parameter with the date formatted '
+        'in `YYYY-MM-DD` to be used as a reference of the latest date.'
+    )
+    args_schema: Type[BaseModel] = StockMarketShema
+
+    def _run(self, **kwargs: Any) -> str:
+        sector_code = kwargs.get("sector_code")
+        current_date = kwargs.get("current_date")
+
+        if sector_code is None:
+            return (
+                'Error: No `sector_code` is provided. Please provide one '
+                'either in the constructor or as an argument.'
+            )
+
+        if current_date is None:
+            return (
+                'Error: No `current_date` is provided. Please provide one '
+                'either in the constructor or as an argument.'
+            )
+
+        try:
+            end_date = datetime.fromisoformat(current_date)
+            start_date = end_date - timedelta(days=70)
+        except:
+            return (
+                'Error: Wrong `current_date` format. Please provide date '
+                "formatted in 'YYYY-MM-DD'."
+            )
+
+        try:
+            connect_database()
+        except:
+            return 'Error: Something went wrong while trying to connect database.'
+
+        try:
+            sector = Sector.select().where(Sector.code == sector_code).get()
+        except:
+            return (
+                f'Error: No sector with code `{sector_code}` '
+                'is available in the the database.'
+            )
+
+        try:
+            data = pd.DataFrame(
+                StockDaily
+                .select(
+                    StockDaily.date,
+                    (
+                        fn.SUM(StockDaily.close * Stock.volume)
+                        / fn.SUM(Stock.volume)
+                    ).alias('close')
+                )
+                .join(Stock)
+                .where(
+                    (Stock.sector == sector)
+                    & (StockDaily.date >= start_date)
+                    & (StockDaily.date <= end_date)
+                )
+                .group_by(StockDaily.date)
                 .order_by(StockDaily.date)
                 .dicts()
             )
@@ -177,7 +273,7 @@ class CurrencyMarketTool(BaseTool):
 
         try:
             end_date = datetime.fromisoformat(current_date)
-            start_date = end_date - timedelta(days=60)
+            start_date = end_date - timedelta(days=70)
         except:
             return (
                 'Error: Wrong `current_date` format. Please provide date '
