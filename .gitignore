@@ -11,3 +11,6 @@ __pycache__/
 # Generated
 data/
 app.db
+
+# System files
+.DS_Store
