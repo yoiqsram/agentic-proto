@@ -9,6 +9,7 @@ from peewee import (
     BigIntegerField,
     FloatField,
     ForeignKeyField,
+    TextField,
     SQL,
     SqliteDatabase
 )
@@ -176,6 +177,34 @@ class UserStockWatchlist(DBModel):
         indexes = ((('user_id', 'stock_code'), True),)
 
 
+class Strategy(DBModel):
+    id = AutoField()
+    name = CharField(unique=True)
+    description = CharField(null=True)
+
+
+class StrategyEvaluation(DBModel):
+    id = AutoField()
+    strategy = ForeignKeyField(
+        Strategy,
+        column_name='strategy_id'
+    )
+    stock = ForeignKeyField(
+        Stock,
+        Stock.code,
+        column_name='stock_code'
+    )
+    date = DateField()
+    evaluation = TextField()
+    created_datetime = DateTimeField(
+        constraints=[SQL('DEFAULT CURRENT_TIMESTAMP')]
+    )
+
+    class Meta:
+        db_table = 'strategy_evaluation'
+        indexes = ((('strategy_id', 'stock_code', 'date'), True),)
+
+
 db_models = [
     User,
     UserBalance,
@@ -185,7 +214,9 @@ db_models = [
     Currency,
     CurrencyDaily,
     UserStockTrade,
-    UserStockWatchlist
+    UserStockWatchlist,
+    Strategy,
+    StrategyEvaluation
 ]
 
 

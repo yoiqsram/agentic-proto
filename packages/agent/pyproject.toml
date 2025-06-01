@@ -1,7 +1,7 @@
 [project]
-name = "pipeline"
+name = "agent"
 version = "0.1.0"
-description = "Data pipeline jobs"
+description = "AI Agents and tools"
 readme = "README.md"
 authors = [
     { name = "Yoiq S Rambadian", email = "yoiqrambadian@gmail.com" }
@@ -9,19 +9,13 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
     "database",
-    "lxml>=5.4.0",
-    "openpyxl>=3.1.5",
-    "requests>=2.32.3",
-    "ta>=0.11.0",
-    "tqdm>=4.67.1",
-    "yfinance>=0.2.61",
 ]
 
 [tool.uv.sources]
 database = { workspace = true }
 
 [project.scripts]
-pipeline = "pipeline:main"
+agent = "agent:main"
 
 [build-system]
 requires = ["hatchling"]
