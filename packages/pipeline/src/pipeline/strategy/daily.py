@@ -16,6 +16,7 @@ from pipeline.market.daily import extract_stock_watchlist
 from .init import Strategy
 from .utils.data import get_stock_daily_data
 from .utils.bollinger import calculate_bollinger_bands
+from .utils.donchian import calculate_donchian_channel
 
 
 def _calculate_change(series: pd.Series, lag: int = 1) -> float:
@@ -55,6 +56,43 @@ def evaluate_bollinger_bands(
                 strategy_id=Strategy.BOLLINGER_BANDS.value,
                 stock=stock,
                 date=current_bb.name.strftime('%Y-%m-%d'),
+                evaluation=json.dumps(evaluation)
+            )
+            .on_conflict_ignore()
+            .execute()
+        )
+
+    return evaluation
+
+def evaluate_donchian_channel(
+        stock: Stock,
+        window: int = 20,
+        *,
+        database: Database
+        ) -> dict:
+    data = get_stock_daily_data(
+        stock.code,
+        start_date=datetime.now() - timedelta(days=60)
+    )
+    donchian_channel = calculate_donchian_channel(data, window)
+    current_donchian = donchian_channel.iloc[-1]
+
+    evaluation = {
+        'window': window,
+        'signal': current_donchian['signal'],
+        'current_price': data['close'].iloc[-1],
+        'rolling_max': current_donchian['rolling_max'],
+        'rolling_min': current_donchian['rolling_min'],
+        'rolling_range': current_donchian['rolling_range']
+    }
+
+    with database.atomic():
+        (
+            StrategyEvaluation
+            .insert(
+                strategy_id=Strategy.DONCHIAN_CHANNEL.value,
+                stock=stock,
+                date=current_donchian.name.strftime('%Y-%m-%d'),
                 evaluation=json.dumps(evaluation)
             )
             .on_conflict_ignore()
