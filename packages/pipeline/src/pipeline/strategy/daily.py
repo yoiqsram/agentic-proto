@@ -17,6 +17,7 @@ from .init import Strategy
 from .utils.data import get_stock_daily_data
 from .utils.bollinger import calculate_bollinger_bands
 from .utils.donchian import calculate_donchian_channel
+from .utils.rsi import calculate_rsi
 
 
 def _calculate_change(series: pd.Series, lag: int = 1) -> float:
@@ -64,6 +65,7 @@ def evaluate_bollinger_bands(
 
     return evaluation
 
+
 def evaluate_donchian_channel(
         stock: Stock,
         window: int = 20,
@@ -102,6 +104,47 @@ def evaluate_donchian_channel(
     return evaluation
 
 
+def evaluate_rsi(
+        stock: Stock,
+        lower_threshold: int = 30,
+        upper_threshold: int = 70,
+        *,
+        database: Database
+        ) -> dict:
+
+    data = get_stock_daily_data(
+        stock.code,
+        start_date=datetime.now() - timedelta(days=60)
+    )
+
+    rsi = calculate_rsi(data, lower_threshold, upper_threshold)
+    current_rsi = rsi.iloc[-1]
+
+    evaluation = {
+        'lower_threshold': lower_threshold,
+        'upper_threshold': upper_threshold,
+        'rsi': current_rsi['rsi'],
+        'rsi_shifted': current_rsi['rsi_shifted'],
+        'signal': current_rsi['signal'],
+        'current_price': data['close'].iloc[-1],
+    }
+
+    with database.atomic():
+        (
+            StrategyEvaluation
+            .insert(
+                strategy_id=Strategy.RELATIVE_STRENGTH_INDEX.value,
+                stock=stock,
+                date=current_rsi.name.strftime('%Y-%m-%d'),
+                evaluation=json.dumps(evaluation)
+            )
+            .on_conflict_ignore()
+            .execute()
+        )
+
+    return evaluation
+
+
 def run_daily_strategy_pipeline(args: Namespace):
     if args.debug:
         enable_debug()
@@ -112,3 +155,5 @@ def run_daily_strategy_pipeline(args: Namespace):
     stocks = extract_stock_watchlist(username)
     for stock in tqdm(stocks):
         evaluate_bollinger_bands(stock, database=db)
+        evaluate_donchian_channel(stock, database=db)
+        evaluate_rsi(stock, database=db)
