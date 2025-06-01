@@ -49,11 +49,16 @@ def evaluate_bollinger_bands(
     }
 
     with database.atomic():
-        StrategyEvaluation.get_or_create(
-            id=Strategy.BOLLINGER_BANDS,
-            stock=stock,
-            date=current_bb.index.dt.strftime('%Y-%m-%d'),
-            evaluation=json.dumps(evaluation)
+        (
+            StrategyEvaluation
+            .insert(
+                strategy_id=Strategy.BOLLINGER_BANDS.value,
+                stock=stock,
+                date=current_bb.name.strftime('%Y-%m-%d'),
+                evaluation=json.dumps(evaluation)
+            )
+            .on_conflict_ignore()
+            .execute()
         )
 
     return evaluation

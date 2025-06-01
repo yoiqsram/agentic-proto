@@ -3,9 +3,9 @@ import ta
 
 
 def _evaluate_signal(row: pd.Series) -> str:
-    if row['close'] < row['bollinger_lower_band']:
+    if row['close'] < row['lower_band']:
         return 'Buy'
-    elif row['close'] > row['bollinger_upper_band']:
+    elif row['close'] > row['upper_band']:
         return 'Sell'
     return 'Hold'
 
