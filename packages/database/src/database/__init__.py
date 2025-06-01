@@ -8,6 +8,8 @@ from .database import (
     CurrencyDaily,
     UserStockTrade,
     UserStockWatchlist,
+    Strategy,
+    StrategyEvaluation,
     connect_database,
     create_database,
     enable_debug
