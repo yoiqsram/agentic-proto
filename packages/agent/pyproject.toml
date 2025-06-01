@@ -1,0 +1,22 @@
+[project]
+name = "agent"
+version = "0.1.0"
+description = "AI Agents and tools"
+readme = "README.md"
+authors = [
+    { name = "Yoiq S Rambadian", email = "yoiqrambadian@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "database",
+]
+
+[tool.uv.sources]
+database = { workspace = true }
+
+[project.scripts]
+agent = "agent:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
