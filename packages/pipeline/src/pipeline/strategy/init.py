@@ -10,6 +10,7 @@ from database import (
 
 class Strategy(int, Enum):
     BOLLINGER_BANDS = auto()
+    DONCHIAN_CHANNEL = auto()
 
 
 STRATEGIES = {
@@ -24,6 +25,17 @@ STRATEGIES = {
             'upper band, the asset may be overbought; near the lower band, it may '
             'be oversold. Traders use Bollinger Bands to spot trend reversals, '
             'breakouts, and to gauge price momentum.',
+    },
+    Strategy.DONCHIAN_CHANNEL: {
+        'name': 'Donchian Channel Breakout',
+        'description':
+            'The Donchian Channel is a technical analysis tool used to identify potential '
+            'breakout opportunities by tracking the highest high and lowest low over a set '
+            'period. It forms a price channel with three lines: the upper band (highest high), '
+            'the lower band (lowest low), and the midpoint (average of the two). A breakout '
+            'above the upper band signals bullish momentum, while a drop below the lower band '
+            'signals bearish momentum. Traders use Donchian Channels to capture trend beginnings, '
+            'manage risk, and confirm trade entries or exits based on price breakouts.'
     }
 }
 
