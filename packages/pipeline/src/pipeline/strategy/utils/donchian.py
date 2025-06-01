@@ -8,11 +8,11 @@ def _evaluate_signal(row: pd.Series) -> str:
     return 'Hold'
 
 def calculate_donchian_channel(
-        df: pd.DataFrame,
+        data: pd.DataFrame,
         window: int = 20
     ):
+    
     data = data[['close']].sort_index()
-
     data['rolling_max'] = data['close'].rolling(window=window).max()
     data['rolling_min'] = data['close'].rolling(window=window).min()
     data['rolling_range'] = data['rolling_max'] - data['rolling_min']

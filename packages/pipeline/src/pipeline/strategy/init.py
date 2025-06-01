@@ -11,6 +11,7 @@ from database import (
 class Strategy(int, Enum):
     BOLLINGER_BANDS = auto()
     DONCHIAN_CHANNEL = auto()
+    RELATIVE_STRENGTH_INDEX = auto()
 
 
 STRATEGIES = {
@@ -36,6 +37,18 @@ STRATEGIES = {
             'above the upper band signals bullish momentum, while a drop below the lower band '
             'signals bearish momentum. Traders use Donchian Channels to capture trend beginnings, '
             'manage risk, and confirm trade entries or exits based on price breakouts.'
+    },
+    Strategy.RELATIVE_STRENGTH_INDEX: {
+        'name': 'Relative Strength Index (RSI)',
+        'description':
+            'The Relative Strength Index (RSI) is a momentum oscillator that measures '
+            'the speed and change of price movements to evaluate overbought or oversold conditions '
+            'in the price of a stock or other asset. RSI values range from 0 to 100, with levels above 70 '
+            'typically indicating that an asset may be overbought and due for a correction, while levels '
+            'below 30 suggest it may be oversold and poised for a rebound. RSI is calculated using the '
+            'average gains and losses over a specified period, often 14 days. Traders use RSI to identify '
+            'potential trend reversals, confirm price momentum, and generate buy or sell signals based on '
+            'divergences between RSI and price action.',
     }
 }
 
